@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stompbox · Sales Engine Diagnostic</title>
+<meta name="description" content="Four numbers tell you where your sales engine is, and which lever moves it. A working tool from Stompbox." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #313e49;          /* Stompbox Dark Gray */
+    --ink-soft: #5c6770;
+    --ink-faint: #949ba2;
+    --line: #e6e8ea;
+    --bg: #f5f6f6;
+    --card: #ffffff;
+    --accent: #00959B;        /* Stompbox Medium Green (primary) */
+    --accent-dark: #296173;   /* Stompbox Dark Green */
+    --accent-light: #52B2AA;  /* Stompbox Light Green */
+    --good: #00959B;          /* Stompbox Medium Green */
+    --good-dark: #296173;     /* Stompbox Dark Green */
+    --good-bg: #e4f3f3;
+    --purple: #6757A6;        /* Stompbox Purple (light accent) */
+    --orange: #EF873C;        /* Stompbox Orange (light accent) */
+    --shadow: 0 1px 2px rgba(49,62,73,.05), 0 8px 28px rgba(49,62,73,.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  /* Header */
+  header { padding: 30px 0 8px; }
+  .logo { height: 34px; width: auto; display: block; }
+  .hero { padding: 22px 0 26px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; color: var(--accent); }
+  h1 { font-size: clamp(28px, 4.4vw, 46px); line-height: 1.04; letter-spacing: -.03em; margin: 12px 0 12px; font-weight: 900; max-width: 16ch; }
+  .sub { font-size: clamp(15px, 1.8vw, 18px); color: var(--ink-soft); max-width: 56ch; margin: 0; }
+
+  /* Layout */
+  .grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: var(--shadow); padding: 22px;
+  }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); margin: 0 0 18px; font-weight: 700; }
+
+  /* Period toggle */
+  .seg { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 11px; padding: 3px; gap: 3px; margin-bottom: 20px; }
+  .seg button {
+    border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 13px; color: var(--ink-soft);
+    padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: .15s;
+  }
+  .seg button.on { background: var(--ink); color: #fff; }
+
+  /* Inputs */
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 4px; }
+  .field .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+  .field label { font-weight: 600; font-size: 15px; }
+  .field .hint { font-size: 12.5px; color: var(--ink-faint); }
+  .valbox {
+    display: inline-flex; align-items: center; gap: 2px; font-weight: 800; font-size: 18px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 4px 10px; letter-spacing: -.01em;
+  }
+  .valbox .pre, .valbox .post { color: var(--ink-faint); font-weight: 700; font-size: 14px; }
+  .valbox input {
+    border: 0; background: transparent; font: inherit; font-weight: 800; width: 4.5ch; text-align: right;
+    color: var(--ink); padding: 0; -moz-appearance: textfield;
+  }
+  .valbox input::-webkit-outer-spin-button, .valbox input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .valbox input:focus { outline: none; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 99px; background: var(--line); outline: none; margin: 2px 0 0; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,.18); cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid var(--accent); cursor: pointer; }
+
+  /* Results */
+  .headline { background: var(--ink); color: #fff; border-radius: 18px; padding: 24px; margin-bottom: 14px; }
+  .headline .lab { font-size: 12.5px; text-transform: uppercase; letter-spacing: .1em; color: #b8bcc6; font-weight: 700; }
+  .headline .big { font-size: clamp(38px, 6vw, 58px); font-weight: 900; letter-spacing: -.04em; line-height: 1; margin: 8px 0 4px; }
+  .headline .big .unit { font-size: 20px; color: #9aa0ad; font-weight: 700; letter-spacing: 0; }
+  .headline .note { font-size: 13.5px; color: #b8bcc6; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .stat { border: 1px solid var(--line); border-radius: 14px; padding: 14px 15px; }
+  .stat .k { font-size: 12px; color: var(--ink-faint); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .stat .v { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin-top: 3px; }
+  .stat .v small { font-size: 13px; color: var(--ink-faint); font-weight: 600; letter-spacing: 0; }
+
+  /* Path / levers */
+  .path { margin-top: 20px; }
+  .path .intro { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 18px; }
+  .lever { border: 1px solid var(--line); border-radius: 14px; padding: 15px 16px; margin-bottom: 12px; }
+  .lever .lh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 12px; }
+  .lever .name { font-weight: 700; font-size: 15px; }
+  .lever .delta { font-weight: 800; font-size: 15px; color: var(--good); white-space: nowrap; }
+  .lever .move { font-size: 13px; color: var(--ink-faint); margin-bottom: 11px; }
+  .lever input[type=range]::-webkit-slider-thumb { border-color: var(--good); }
+  .lever input[type=range]::-moz-range-thumb { border-color: var(--good); }
+  .lever .scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-faint); margin-top: 5px; }
+
+  .projection { background: var(--good-bg); border: 1px solid #bfe3e4; border-radius: 16px; padding: 20px; margin-top: 6px; }
+  .projection .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .projection .row + .row { margin-top: 10px; padding-top: 10px; border-top: 1px solid #bfe3e4; }
+  .projection .lab { font-size: 14px; color: var(--good-dark); font-weight: 600; }
+  .projection .num { font-weight: 900; letter-spacing: -.02em; }
+  .projection .num.huge { font-size: 30px; color: var(--good-dark); }
+  .projection .num.lift { font-size: 22px; color: var(--good); }
+
+  .insight { display: flex; gap: 11px; margin-top: 16px; padding: 15px 16px; background: #f1eff8; border: 1px solid #ddd7ef; border-radius: 14px; }
+  .insight .ic { font-size: 18px; line-height: 1.2; }
+  .insight p { margin: 0; font-size: 13.5px; color: #4a4080; }
+  .insight strong { color: #38306b; }
+
+  .reset { background: none; border: 0; color: var(--ink-faint); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
+
+  /* How to read it */
+  .readout { margin: 28px 0 50px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); padding: 28px; }
+  .readout h3 { font-size: clamp(20px, 2.6vw, 26px); font-weight: 900; letter-spacing: -.03em; margin: 0 0 20px; }
+  .reads { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .reads { grid-template-columns: 1fr; } }
+  .read { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; border-left: 3px solid var(--accent); }
+  .read .rt { font-weight: 800; font-size: 15px; margin-bottom: 6px; letter-spacing: -.01em; }
+  .read p { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  footer { text-align: center; color: var(--ink-faint); font-size: 12.5px; padding-bottom: 40px; }
+  .logo-footer { height: 24px; width: auto; opacity: .55; margin-bottom: 12px; }
+  .badge { display:inline-block; font-size: 11px; font-weight:700; padding: 2px 8px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
+  .badge.below { background:#fdecea; color: var(--accent-dark);}
+  .badge.at { background: var(--good-bg); color: var(--good);}
+  .badge.above { background:#eef2ff; color:#3552d6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.png" class="logo" alt="Stompbox" />
+    <div class="hero">
+      <div class="eyebrow">Sales Engine Diagnostic</div>
+      <h1>Four numbers tell you where your sales engine really is.</h1>
+      <p class="sub">Punch in what you already know off the top of your head. You'll see the revenue your engine produces today, and the one lever most worth pulling next.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="card">
+      <h2>Your engine today</h2>
+      <div class="seg" id="period">
+        <button data-p="52" data-label="week">Weekly</button>
+        <button data-p="12" data-label="month" class="on">Monthly</button>
+        <button data-p="4" data-label="quarter">Quarterly</button>
+      </div>
+
+      <div class="field">
+        <div class="top">
+          <label>First meetings run <span class="periodword">/ month</span></label>
+          <div class="valbox"><input id="meetN" type="number" min="0" max="200" value="12" /><span class="post periodword">/mo</span></div>
+        </div>
+        <input id="meetR" type="range" min="0" max="60" step="1" value="12" />
+        <div class="hint" style="margin-top:6px">Real discovery / first meetings, not dials or no-shows.</div>
+      </div>
+
+      <div class="field">
+        <div class="top">
+          <label>Average contract value</label>
+          <div class="valbox"><span class="pre">$</span><input id="acvN" type="number" min="0" max="1000000" step="500" value="24000" /></div>
+        </div>
+        <input id="acvR" type="range" min="0" max="100000" step="1000" value="24000" />
+        <div class="hint" style="margin-top:6px">First-year value of a typical closed deal.</div>
+      </div>
+
+      <div class="field">
+        <div class="top">
+          <label>Win rate</label>
+          <div class="valbox"><input id="winN" type="number" min="0" max="100" value="25" /><span class="post">%</span></div>
+        </div>
+        <input id="winR" type="range" min="0" max="100" step="1" value="25" />
+        <div class="hint" style="margin-top:6px">Of qualified first meetings, what share become customers.</div>
+      </div>
+
+      <div class="field">
+        <div class="top">
+          <label>Sales cycle length</label>
+          <div class="valbox"><input id="cycN" type="number" min="1" max="730" value="45" /><span class="post">days</span></div>
+        </div>
+        <input id="cycR" type="range" min="1" max="180" step="1" value="45" />
+        <div class="hint" style="margin-top:6px">First meeting → signed. Sets your cash lag, not your run-rate.</div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="headline">
+        <div class="lab">New revenue your engine produces</div>
+        <div class="big"><span id="annual">$0</span> <span class="unit">/ year</span></div>
+        <div class="note" id="annualNote">Crunching your numbers…</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">New customers / yr</div><div class="v" id="deals">0</div></div>
+        <div class="stat"><div class="k">Revenue / day <small>velocity</small></div><div class="v" id="velocity">$0</div></div>
+        <div class="stat"><div class="k">Deals in flight <small>WIP</small></div><div class="v" id="wip">0</div></div>
+        <div class="stat"><div class="k">Time to first cash</div><div class="v" id="cash">0 <small>days</small></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATH -->
+  <div class="card path">
+    <h2>Build the path: what's realistic in the next 90 days?</h2>
+    <p class="intro">Volume, win rate, and price are mathematically equal levers: 10% better at any one is 10% more revenue. So the real question isn't <em>which is biggest</em>. It's <strong>which is cheapest for you to move</strong>. Drag each one to a target you'd actually commit to.</p>
+
+    <div class="grid" style="align-items:start">
+      <div>
+        <div class="lever">
+          <div class="lh"><span class="name">Run more meetings</span><span class="delta" id="d-meet">+$0</span></div>
+          <div class="move" id="m-meet">12 → 12 / mo</div>
+          <input id="imp-meet" type="range" min="0" max="100" step="5" value="0" />
+          <div class="scale"><span>today</span><span>+50%</span><span>+100%</span></div>
+        </div>
+        <div class="lever">
+          <div class="lh"><span class="name">Raise win rate</span><span class="delta" id="d-win">+$0</span></div>
+          <div class="move" id="m-win">25% → 25%</div>
+          <input id="imp-win" type="range" min="0" max="40" step="1" value="0" />
+          <div class="scale"><span>today</span><span>+20 pts</span><span>+40 pts</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="lever">
+          <div class="lh"><span class="name">Lift average contract value</span><span class="delta" id="d-acv">+$0</span></div>
+          <div class="move" id="m-acv">$24,000 → $24,000</div>
+          <input id="imp-acv" type="range" min="0" max="100" step="5" value="0" />
+          <div class="scale"><span>today</span><span>+50%</span><span>+100%</span></div>
+        </div>
+        <div class="lever">
+          <div class="lh"><span class="name">Shorten sales cycle</span><span class="delta" id="d-cyc" style="color:var(--ink-soft)">cash + speed</span></div>
+          <div class="move" id="m-cyc">45 → 45 days</div>
+          <input id="imp-cyc" type="range" min="0" max="60" step="5" value="0" />
+          <div class="scale"><span>today</span><span>−30%</span><span>−60%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="projection">
+      <div class="row">
+        <span class="lab">Projected new revenue / year</span>
+        <span class="num huge" id="proj">$0</span>
+      </div>
+      <div class="row">
+        <span class="lab">Lift over today</span>
+        <span class="num lift" id="lift">+$0 &nbsp;·&nbsp; 0%</span>
+      </div>
+    </div>
+
+    <div class="insight">
+      <span class="ic">⚡</span>
+      <p id="cycInsight"><strong>Cycle is the odd lever.</strong> At a steady meeting rate it doesn't change your run-rate. It changes cash timing and capacity. Shortening it frees rep time and gets you paid sooner, which matters most when your reps' calendars (not your leads) are the constraint.</p>
+    </div>
+    <div style="margin-top:14px"><button class="reset" id="reset">Reset the path</button></div>
+  </div>
+
+  <!-- HOW TO READ IT -->
+  <div class="readout">
+    <h3>How to read your numbers</h3>
+    <div class="reads">
+      <div class="read">
+        <div class="rt">If leads are the constraint</div>
+        <p>Your meetings number is low and everything downstream is healthy. Adding volume is the fastest lever, but it's also the one that breaks reps first. Make sure the process can absorb it before you pour in more.</p>
+      </div>
+      <div class="read">
+        <div class="rt">If win rate is the constraint</div>
+        <p>Plenty of meetings, not enough close. This is usually a process problem, not a people problem: qualification, discovery, and how the deal gets run. It's the most coachable lever on the board.</p>
+      </div>
+      <div class="read">
+        <div class="rt">If ACV is the constraint</div>
+        <p>You're winning, but small. Packaging, pricing, and who you're targeting move this. Often the quietest lever and the one founders leave on the table longest.</p>
+      </div>
+      <div class="read">
+        <div class="rt">If cycle is the constraint</div>
+        <p>Deals close, but slowly. This is cash flow and capacity, not run-rate. Tightening it gets you paid sooner and frees the calendar to run more deals.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <img src="logo.png" class="logo-footer" alt="Stompbox" />
+    <div>A working diagnostic, not a guarantee. Built on the Stompbox bottom-up / top-down sales model. © Stompbox</div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var periodsPerYear = 12, periodLabel = 'month', periodAbbr = 'mo';
+
+  var inp = {
+    meet: { n: document.getElementById('meetN'), r: document.getElementById('meetR') },
+    acv:  { n: document.getElementById('acvN'),  r: document.getElementById('acvR') },
+    win:  { n: document.getElementById('winN'),  r: document.getElementById('winR') },
+    cyc:  { n: document.getElementById('cycN'),  r: document.getElementById('cycR') }
+  };
+  var imp = {
+    meet: document.getElementById('imp-meet'),
+    win:  document.getElementById('imp-win'),
+    acv:  document.getElementById('imp-acv'),
+    cyc:  document.getElementById('imp-cyc')
+  };
+
+  function money(v) {
+    if (!isFinite(v)) v = 0;
+    if (Math.abs(v) >= 1000000) return '$' + (v / 1000000).toFixed(v % 1000000 === 0 ? 0 : 1) + 'M';
+    return '$' + Math.round(v).toLocaleString('en-US');
+  }
+  function moneyFull(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+
+  // keep slider + number box in sync per input
+  function pair(o, cap) {
+    o.r.addEventListener('input', function () { o.n.value = o.r.value; render(); });
+    o.n.addEventListener('input', function () {
+      var v = parseFloat(o.n.value) || 0;
+      if (cap && v > +o.r.max) o.r.value = o.r.max; else o.r.value = v;
+      render();
+    });
+  }
+  Object.keys(inp).forEach(function (k) { pair(inp[k], true); });
+  Object.values(imp).forEach(function (s) { s.addEventListener('input', render); });
+
+  // period toggle
+  document.querySelectorAll('#period button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('#period button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      periodsPerYear = +b.dataset.p;
+      periodLabel = b.dataset.label;
+      periodAbbr = b.dataset.label === 'week' ? 'wk' : (b.dataset.label === 'quarter' ? 'qtr' : 'mo');
+      document.querySelectorAll('.periodword').forEach(function (e) {
+        e.textContent = e.classList.contains('post') ? '/' + periodAbbr : '/ ' + periodLabel;
+      });
+      render();
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    Object.values(imp).forEach(function (s) { s.value = 0; });
+    render();
+  });
+
+  function val(o) { return parseFloat(o.n.value) || 0; }
+
+  function render() {
+    var meet = val(inp.meet);          // meetings per chosen period
+    var acv  = val(inp.acv);
+    var win  = Math.min(val(inp.win), 100) / 100;
+    var cyc  = Math.max(val(inp.cyc), 1);
+
+    var meetYr   = meet * periodsPerYear;
+    var dealsYr  = meetYr * win;
+    var annual   = dealsYr * acv;
+    var velocity = annual / 365;
+    var dailyOpp = meetYr / 365;
+    var wip      = dailyOpp * cyc;       // deals open at any time (steady state)
+
+    document.getElementById('annual').textContent   = money(annual);
+    document.getElementById('annualNote').textContent =
+      Math.round(meetYr).toLocaleString() + ' meetings → ' + dealsYr.toFixed(1) + ' wins × ' + moneyFull(acv) + ' a year.';
+    document.getElementById('deals').textContent    = dealsYr.toFixed(1);
+    document.getElementById('velocity').textContent = money(velocity);
+    document.getElementById('wip').textContent      = wip.toFixed(1);
+    document.getElementById('cash').innerHTML        = Math.round(cyc) + ' <small>days</small>';
+
+    // ---- PATH ----
+    var mPct = +imp.meet.value / 100;
+    var aPct = +imp.acv.value / 100;
+    var wAdd = +imp.win.value;                 // percentage points
+    var cRed = +imp.cyc.value / 100;
+
+    var meet2 = meet * (1 + mPct);
+    var acv2  = acv  * (1 + aPct);
+    var win2  = Math.min(val(inp.win) + wAdd, 100) / 100;
+    var cyc2  = cyc * (1 - cRed);
+
+    // isolated deltas (each lever alone, vs today)
+    var base   = annual;
+    var dMeet  = (meet2 * periodsPerYear * win * acv) - base;
+    var dWin   = (meetYr * win2 * acv) - base;
+    var dAcv   = (meetYr * win * acv2) - base;
+
+    document.getElementById('d-meet').textContent = '+' + money(dMeet);
+    document.getElementById('d-win').textContent  = '+' + money(dWin);
+    document.getElementById('d-acv').textContent  = '+' + money(dAcv);
+
+    document.getElementById('m-meet').textContent = meet.toFixed(0) + ' → ' + meet2.toFixed(meet2 % 1 ? 1 : 0) + ' / ' + periodAbbr;
+    document.getElementById('m-win').textContent  = val(inp.win).toFixed(0) + '% → ' + Math.min(val(inp.win) + wAdd, 100).toFixed(0) + '%';
+    document.getElementById('m-acv').textContent  = moneyFull(acv) + ' → ' + moneyFull(acv2);
+    document.getElementById('m-cyc').textContent  = cyc.toFixed(0) + ' → ' + cyc2.toFixed(0) + ' days';
+
+    // combined projection (all levers together)
+    var proj = meet2 * periodsPerYear * win2 * acv2;
+    var lift = proj - base;
+    var liftPct = base > 0 ? (lift / base * 100) : 0;
+    document.getElementById('proj').textContent = money(proj);
+    document.getElementById('lift').innerHTML = '+' + money(lift) + ' &nbsp;·&nbsp; ' + (liftPct >= 0 ? '+' : '') + liftPct.toFixed(0) + '%';
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
